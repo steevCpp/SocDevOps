@@ -47,6 +47,66 @@ docker swarm init
 docker network create --driver=overlay --scope=swarm traefik-public
 ```
 
+
+```
+version: '3.8'
+services:
+  traefik:
+    image: traefik:v2.9.6
+    ports:
+      - 80:80
+      - 443:443
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.http.routers.traefik.middlewares=admin-auth
+        - traefik.http.middlewares.admin-auth.basicauth.users=<user>:<hashed_password>
+        - traefik.http.routers.traefik.rule=Host(`soc`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+        - traefik.http.routers.traefik.entrypoints=https
+        - traefik.http.routers.traefik.tls=true
+        - traefik.http.routers.traefik.service=api@internal
+        - traefik.http.services.traefik-svc.loadbalancer.server.port=8080
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.swarmmode=true
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      - --providers.file.directory=/certificates/
+      - --providers.file.watch=true
+      - --log=true
+      - --log.level=DEBUG
+      - --api
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /soc/volumes/traefik/certificates/:/certificates/
+    networks:
+      traefik-public: {}
+networks:
+  traefik-public:
+    external: true
+```
+
+```
+mkdir -p /soc/volumes/traefik/certificates/ && cd /soc/volumes/traefik/certificates/
+```
+
+```
+openssl req -x509 -newkey rsa:4096 -keyout soc.key -out soc.crt -sha256 -days 3650 -nodes
+```
+
+```
+vim /soc/volumes/traefik/certificates/certificates.yaml
+```
+
+```
+
+```
+
 - Jenkins 
 
 ```
