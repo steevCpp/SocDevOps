@@ -11,7 +11,11 @@ yum update && upgrade -y
 yum install -y yum-utils
 ```
 
--Docker
+```
+mkdir -p /soc/docker-config
+```
+
+- Docker
 
 Installation
 
@@ -27,11 +31,21 @@ yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 yum systemctl start docker
 ```
 
--Docker-compose 
+- Docker-swarm 
 
--Jenkins 
+```
+docker swarm init
+```
 
--Trivy 
+- Docker Network Traefik
 
--Nikto 
+```
+docker network create --driver=overlay --scope=swarm traefik-public
+```
+
+- Jenkins 
+
+- Trivy 
+
+- Nikto 
 
