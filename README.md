@@ -47,6 +47,9 @@ docker swarm init
 docker network create --driver=overlay --scope=swarm traefik-public
 ```
 
+```
+ htpasswd -nB admin
+```
 
 ```
 version: '3.8'
@@ -64,7 +67,7 @@ services:
         - traefik.enable=true
         - traefik.docker.network=traefik-public
         - traefik.http.routers.traefik.middlewares=admin-auth
-        - traefik.http.middlewares.admin-auth.basicauth.users=<user>:<hashed_password>
+        - traefik.http.middlewares.admin-auth.basicauth.users=admin:$2y$05$9aHVjv94lcus/vJuToFqgeThiJ97/0lVpp02/yLO7Xm4PoM7Hdu1S
         - traefik.http.routers.traefik.rule=Host(`soc`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
         - traefik.http.routers.traefik.entrypoints=https
         - traefik.http.routers.traefik.tls=true
@@ -111,6 +114,8 @@ docker stack deploy -c /soc/docker-config/docker_compose_traefik.yml traefik
 docker stack ls
 ```
 
+### https://soc/dashboard
+
 - Jenkins 
 
 ```
@@ -149,6 +154,8 @@ networks:
 ```
 docker stack deploy -c /soc/docker-config/docker_compose_jenkins.yml jenkins
 ```
+
+### https://soc/jenkins
 
 - Trivy 
 
