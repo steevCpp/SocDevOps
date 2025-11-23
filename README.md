@@ -104,7 +104,11 @@ vim /soc/volumes/traefik/certificates/certificates.yaml
 ```
 
 ```
+docker stack deploy -c /soc/docker-config/docker_compose_traefik.yml traefik
+```
 
+```
+docker stack ls
 ```
 
 - Jenkins 
