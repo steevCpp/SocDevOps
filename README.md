@@ -159,5 +159,38 @@ docker stack deploy -c /soc/docker-config/docker_compose_jenkins.yml jenkins
 
 - Trivy 
 
+```
+mkdir -p /soc/volumes/trivy/
+```
+
+```
+vim /soc/docker-config/docker_compose_trivy.yml
+```
+
+```
+version: '3.8'
+services:
+  trivy:
+    image: aquasec/trivy:0.67.2
+    entrypoint: ["/bin/sh"]
+    command: ["-c", "tail -f /dev/null"]
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=false
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - /soc/volumes/trivy/:/root/.cache
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      traefik-public: {}
+networks:
+  traefik-public:
+    external: true
+```
+
 - Nikto 
 
