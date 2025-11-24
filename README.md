@@ -15,6 +15,10 @@ yum install -y yum-utils
 hostnamectl set-hostname soc
 ```
 
+`
+Si nous travaillons sur une machine virtuel dont l'hôte est editons le  C:\Windows\System32\drivers\etc\hosts en ajoutons la ligne 192.168.1.64 soc
+`
+
 ```
 mkdir -p /soc/docker-config
 ```
