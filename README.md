@@ -107,6 +107,13 @@ vim /soc/volumes/traefik/certificates/certificates.yaml
 ```
 
 ```
+tls:
+  certificates:
+    - certfile: /certificates/soc.crt
+      keyfile: /certificates/soc.key
+```
+
+```
 docker stack deploy -c /soc/docker-config/docker_compose_traefik.yml traefik
 ```
 
