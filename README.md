@@ -170,40 +170,66 @@ docker stack deploy -c /soc/docker-config/docker_compose_jenkins.yml jenkins
 
 ### https://soc/jenkins
 
-- Trivy 
+- Installation de Trivy et Nikto sur container jenkins 
 
 ```
-mkdir -p /soc/volumes/trivy/
+vim /soc/docker-config/jenkins-trivy-nikto.dockerfile
 ```
 
 ```
-vim /soc/docker-config/docker_compose_trivy.yml
-```
+FROM jenkins/jenkins:jdk21
 
+USER root
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget \
+        apt-transport-https \
+        gnupg \
+        lsb-release
+
+RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+RUN echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb bookworm main" | tee /etc/apt/sources.list.d/trivy.list
+
+RUN apt-get update && apt-get install -y trivy
+
+RUN echo "deb http://deb.debian.org/debian/ trixie main contrib non-free" > /etc/apt/sources.list.d/trixie-full.list && \
+    echo "deb http://deb.debian.org/debian/ trixie-updates main contrib non-free" >> /etc/apt/sources.list.d/trixie-full.list && \
+    echo "deb http://deb.debian.org/debian-security/ trixie-security main contrib non-free" >> /etc/apt/sources.list.d/trixie-full.list && \
+    apt-get update && \
+    apt-get install -y nikto
+
+RUN apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+USER jenkins
+```
+`Le nouveau fichier docker_compose_jenkins.yml `
 ```
 version: '3.8'
 services:
-  trivy:
-    image: aquasec/trivy:0.67.2
-    entrypoint: ["/bin/sh"]
-    command: ["-c", "tail -f /dev/null"]
+  jenkins:
+    image: jenkins-trivy-nikto:1.0
+    ports:
+      - 50000:50000
+    environment:
+      - "JENKINS_OPTS=--prefix=/jenkins"
     deploy:
-      placement:
-        constraints:
-          - node.role == manager
       labels:
-        - traefik.enable=false
-      restart_policy:
-        condition: on-failure
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.http.routers.jenkins.rule=Host(`192.168.1.64`) && PathPrefix(`/jenkins`)
+        - traefik.http.routers.jenkins.entrypoints=https
+        - traefik.http.routers.jenkins.tls=true
+        - traefik.http.services.jenkins-svc.loadbalancer.server.port=8080
     volumes:
-      - /soc/volumes/trivy/:/root/.cache
-      - /etc/localtime:/etc/localtime:ro
+      - "/soc/volumes/jenkins:/var/jenkins_home"
+      - "/etc/localtime:/etc/localtime:ro"
     networks:
-      traefik-public: {}
+      - traefik-public
 networks:
   traefik-public:
     external: true
 ```
-
-- Nikto 
-
