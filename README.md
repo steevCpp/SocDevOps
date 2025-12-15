@@ -4,7 +4,7 @@ Soc d'analyse de vulnérabilité des FS, Docker images, apache...
 - VM centos7, sudo su -
 
 ```
-yum update && upgrade -y
+yum update && yum upgrade -y
 ```
 
 ```
